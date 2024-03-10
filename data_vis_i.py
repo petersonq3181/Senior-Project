@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 
 fn = 'MorroBayHeights.csv'
-
 csvFile = pd.read_csv(fn)
 
 
