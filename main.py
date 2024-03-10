@@ -17,9 +17,10 @@ df = pd.read_csv(fn, usecols=cols, parse_dates=['datetime_local'])
 # make sure to standardize units to meters 
 df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048 
 
-
-train = df.iloc[:30000]
-test = df.iloc[30000:]
+# splitting to approximately 80 20 train test respectively 
+# 37266 total 
+train = df.iloc[:29800]
+test = df.iloc[29800:]
 
 # ----- parameters 
 sequence_length = 14 
@@ -29,8 +30,8 @@ input_dim = 1
 output_dim = 1
 hidden_dim = 100
 num_layers = 1
-learning_rate = 0.01
-epochs = 20
+learning_rate = 0.001
+epochs = 3
 
 
 # ----- preprocessing 
@@ -122,3 +123,34 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
     print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
+
+# Switch to evaluation mode
+model.eval()
+
+# No gradient updates
+with torch.no_grad():
+    # Predict on the test set
+    test_predictions = model(X_test_tensor)
+    
+    # Squeeze to match the shape of `y_test_tensor`
+    test_predictions = test_predictions.squeeze(-1)
+    
+    # Calculate the loss on the test set
+    test_loss = criterion(test_predictions, y_test_tensor)
+    print(f'Test Loss: {test_loss.item()}')
+
+# Optional: Visualizing the predictions
+# Convert predictions and actual values back to original scale
+test_predictions_np = test_predictions.numpy() * scaler.scale_[1] + scaler.min_[1]
+y_test_np = y_test_tensor.numpy() * scaler.scale_[1] + scaler.min_[1]
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(y_test_np, label='Actual')
+plt.plot(test_predictions_np, label='Predicted')
+plt.title('Test Predictions vs Actual')
+plt.xlabel('Time')
+plt.ylabel('Scaled Value')
+plt.legend()
+plt.show()
+
