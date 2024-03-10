@@ -21,52 +21,73 @@ df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048
 train = df.iloc[:30000]
 test = df.iloc[30000:]
 
+# ----- parameters 
+sequence_length = 14 
+batch_size = 64
+
+input_dim = 1
+output_dim = 1
+hidden_dim = 100
+num_layers = 1
+learning_rate = 0.01
+epochs = 20
+
+
+# ----- preprocessing 
+# scale each numerical feature into a range [0 1] (scaling based on only the training data)
+# then applies same scaling to the test set 
 scaler = MinMaxScaler()
 scaler.fit(train[numeric_cols])
 scaled_train = scaler.transform(train[numeric_cols])
 scaled_test = scaler.transform(test[numeric_cols])
 
-# if need to keep the datetime information alongside the scaled data, can insert the scaled data back into a DataFrame
-scaled_train_df = pd.DataFrame(scaled_train, columns=numeric_cols, index=train.index)
-scaled_train_df['datetime_local'] = train['datetime_local']
 
-scaled_test_df = pd.DataFrame(scaled_test, columns=numeric_cols, index=test.index)
-scaled_test_df['datetime_local'] = test['datetime_local']
-
-
-print(scaled_train[:10])
-print(scaled_test[:10])
-
-
-# Define a function to create sequences
-def create_sequences(data, sequence_length):
+# ----- data setup 
+def create_sequences(input_data, target_data, seq_len):
     xs = []
     ys = []
-    for i in range(len(data)-sequence_length):
-        x = data[i:(i+sequence_length)]
-        y = data[i+1:(i+1+sequence_length)]
+    for i in range(len(input_data) - seq_len):
+        x = input_data[i:(i + seq_len)]  # Use only A
+        y = target_data[i + seq_len]  # Predict B
         xs.append(x)
-        ys.append(y[-1])
+        ys.append(y)
     return np.array(xs), np.array(ys)
 
-sequence_length = 14  # Same as n_input in your initial approach
-batch_size = 64
+# Assuming scaled_train[:, 0] is A and scaled_train[:, 1] is B
+X_train, y_train = create_sequences(scaled_train[:, 0].reshape(-1, 1), scaled_train[:, 1], sequence_length)
+X_test, y_test = create_sequences(scaled_test[:, 0].reshape(-1, 1), scaled_test[:, 1], sequence_length)
 
 
-# Prepare data
-X_train, y_train = create_sequences(scaled_train_df['lotusMaxBWH_ft'].values, sequence_length)
-X_test, y_test = create_sequences(scaled_test_df['lotusMaxBWH_ft'].values, sequence_length)
+# print(X_train[0])
+# print(y_train[0])
+# print(len(X_train), len(y_train)) 
 
-# Convert to tensors
-X_train_tensor = torch.tensor(X_train).float().unsqueeze(-1)  # Adding required extra dimension
+# convert to tensors
+# (add extra dimension w/ unsqueeze to conform to model's expected input shape)
+X_train_tensor = torch.tensor(X_train).float()
+y_train_tensor = torch.tensor(y_train).float().unsqueeze(-1)  # Ensure y_train is 2D
+X_test_tensor = torch.tensor(X_test).float()
+y_test_tensor = torch.tensor(y_test).float().unsqueeze(-1)  # Ensure y_test is 2D
+
+
+# Convert to tensors without adding extra dimension
+X_train_tensor = torch.tensor(X_train).float()
 y_train_tensor = torch.tensor(y_train).float()
-X_test_tensor = torch.tensor(X_test).float().unsqueeze(-1)
+X_test_tensor = torch.tensor(X_test).float()
 y_test_tensor = torch.tensor(y_test).float()
+
+# Check the shapes
+print("X_train_tensor shape:", X_train_tensor.shape)
+print("y_train_tensor shape:", y_train_tensor.shape)
+print("X_test_tensor shape:", X_test_tensor.shape)
+print("y_test_tensor shape:", y_test_tensor.shape)
 
 # DataLoader setup
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
+
+# ----- model 
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(LSTMModel, self).__init__()
@@ -84,17 +105,20 @@ class LSTMModel(nn.Module):
         out = self.fc(out[:, -1, :])  # Only take the output of the last time step
         return out
 
-model = LSTMModel(input_dim=1, hidden_dim=100, num_layers=1, output_dim=1)
-criterion = torch.nn.MSELoss(reduction='mean')
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-epochs = 20
+
+model = LSTMModel(input_dim=input_dim, hidden_dim=hidden_dim, num_layers=num_layers, output_dim=output_dim)
+criterion = torch.nn.MSELoss(reduction='mean')
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
 for epoch in range(epochs):
     for x_batch, y_batch in train_loader:
         optimizer.zero_grad()
         y_pred = model(x_batch)
+
+        # squeeze the predictions to match the target's shape
+        y_pred = y_pred.squeeze(-1)  
         loss = criterion(y_pred, y_batch)
         loss.backward()
         optimizer.step()
-    print(f'Epoch {epoch+1}, Loss: {loss.item()}')
-
+    print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
