@@ -112,6 +112,14 @@ model = LSTMModel(input_dim=input_dim, hidden_dim=hidden_dim, layer_dim=layer_di
 criterion = torch.nn.MSELoss(reduction='mean')
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+best_test_loss = float('inf')
+
+# number of evaluations to wait for improvement
+patience = 10
+# counter to track evaluations without improvement
+patience_counter = 0
+min_delta = 0.001 
+
 iter = 0
 for epoch in range(epochs):
     for x_batch, y_batch in train_loader:
@@ -141,9 +149,26 @@ for epoch in range(epochs):
             
             avg_test_loss = sum(test_losses) / len(test_losses)
             
-            print(f'\tEpoch [{epoch+1}/{epochs}], Step [{iter}], Train Loss: {loss.item():.4f}, Test Loss: {avg_test_loss:.4f}')
+            print(f'\tEpoch [{epoch+1}/{epochs}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
 
+            if avg_test_loss < (best_test_loss - min_delta):
+                best_test_loss = avg_test_loss
 
+                # save the best model so far 
+                torch.save(model.state_dict(), 'best_model.pth')
+                patience_counter = 0
+            else:
+                patience_counter += 1
+
+            if patience_counter >= patience:
+                print('early stopping triggered')
+
+                # load the best model parameters before stopping
+                model.load_state_dict(torch.load('best_model.pth'))
+                break
+
+    if patience_counter >= patience:
+        break 
 
     print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
 
