@@ -28,7 +28,7 @@ batch_size = 64
 input_dim = 1
 output_dim = 1
 hidden_dim = 4
-num_layers = 1
+layer_dim = 1
 learning_rate = 0.03
 epochs = 10
 
@@ -67,41 +67,84 @@ y_test_tensor = torch.tensor(y_test).float()
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
+test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
 
 # ----- model 
 class LSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+    def __init__(self, input_dim, hidden_dim, layer_dim, output_dim):
         super(LSTMModel, self).__init__()
+
+        # hidden dimensions
         self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
+
+        # number of hidden layers
+        self.layer_dim = layer_dim
         
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        # batch_first=True causes input/output tensors to be of shape
+        # (batch_dim, seq_dim, feature_dim)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, layer_dim, batch_first=True)
+
+        # readout layer 
         self.fc = nn.Linear(hidden_dim, output_dim)
         
     def forward(self, x):
         batch_size = x.size(0)
-        h0 = torch.zeros(self.num_layers, batch_size, self.hidden_dim).requires_grad_()
-        c0 = torch.zeros(self.num_layers, batch_size, self.hidden_dim).requires_grad_()
+
+        # init hidden state with zeros
+        h0 = torch.zeros(self.layer_dim, batch_size, self.hidden_dim).requires_grad_()
+
+        # init cell state 
+        c0 = torch.zeros(self.layer_dim, batch_size, self.hidden_dim).requires_grad_()
+
+        # need to detach as we are doing truncated backpropagation through time (BPTT)
         out, (hn, cn) = self.lstm(x, (h0.detach(), c0.detach()))
-        out = self.fc(out[:, -1, :])  # Only take the output of the last time step
+
+        # just want the last time stamp's hidden state 
+        out = self.fc(out[:, -1, :])
+
         return out
 
 
 # ----- training 
-model = LSTMModel(input_dim=input_dim, hidden_dim=hidden_dim, num_layers=num_layers, output_dim=output_dim)
+model = LSTMModel(input_dim=input_dim, hidden_dim=hidden_dim, layer_dim=layer_dim, output_dim=output_dim)
 criterion = torch.nn.MSELoss(reduction='mean')
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+iter = 0
 for epoch in range(epochs):
     for x_batch, y_batch in train_loader:
-        optimizer.zero_grad()
-        y_pred = model(x_batch)
+        # ensure model is in training mode 
+        model.train() 
+        iter += 1 
 
-        # squeeze the predictions to match the target's shape
-        y_pred = y_pred.squeeze(-1)  
+        # forward pass
+        y_pred = model(x_batch).squeeze(-1)
         loss = criterion(y_pred, y_batch)
+        
+        # backward pass and optimization
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        if iter % 100 == 0:
+            # set the model to evaluation mode
+            model.eval()  
+
+            test_losses = []
+            with torch.no_grad():
+                for x_test, y_test in test_loader:
+                    y_test_pred = model(x_test).squeeze(-1)
+                    test_loss = criterion(y_test_pred, y_test)
+                    test_losses.append(test_loss.item())
+            
+            avg_test_loss = sum(test_losses) / len(test_losses)
+            
+            print(f'\tEpoch [{epoch+1}/{epochs}], Step [{iter}], Train Loss: {loss.item():.4f}, Test Loss: {avg_test_loss:.4f}')
+
+
+
     print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
 
 
