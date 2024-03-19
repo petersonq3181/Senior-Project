@@ -123,8 +123,10 @@ min_delta = 0.001
 n_iters_eval = 100
 
 iter = 0
+train_losses = []
 start_time = time.time()
 for epoch in range(epochs):
+    print('ITER: ', iter)
     for x_batch, y_batch in train_loader:
         # ensure model is in training mode 
         model.train() 
@@ -138,6 +140,8 @@ for epoch in range(epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        train_losses.append(loss.item())
 
         if iter % n_iters_eval == 0:
             # set the model to evaluation mode
@@ -206,5 +210,14 @@ plt.plot(test_predictions_unscaled, label='Predicted')
 plt.title('Test Predictions vs Actual')
 plt.xlabel('Time (Hours)')
 plt.ylabel('Wave Height (Meters)')
+plt.legend()
+plt.show()
+
+# plotting 
+plt.figure(figsize=(10, 6))
+plt.plot(train_losses, label='Loss')
+plt.title('Training MSE')
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
 plt.legend()
 plt.show()
