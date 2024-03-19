@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
+import time 
 
      
 
@@ -119,8 +120,10 @@ patience = 10
 # counter to track evaluations without improvement
 patience_counter = 0
 min_delta = 0.001 
+n_iters_eval = 100
 
 iter = 0
+start_time = time.time()
 for epoch in range(epochs):
     for x_batch, y_batch in train_loader:
         # ensure model is in training mode 
@@ -136,7 +139,7 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
-        if iter % 100 == 0:
+        if iter % n_iters_eval == 0:
             # set the model to evaluation mode
             model.eval()  
 
@@ -172,6 +175,9 @@ for epoch in range(epochs):
 
     print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
 
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Training time: {elapsed_time} seconds")
 
 # ----- testing 
 model.eval()
