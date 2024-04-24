@@ -1,30 +1,36 @@
 from torch.utils.data import TensorDataset, DataLoader
+import matplotlib.pyplot as plt
 from utils import LSTMModel
+import config
 import torch
 import time 
 
 def train_lstm(x_train_tensor, y_train_tensor):
-    # data setup
-    train_dataset = TensorDataset(x_train_tensor, y_train_tensor)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
-    model = LSTMModel(input_dim=input_dim, hidden_dim=hidden_dim, layer_dim=layer_dim, output_dim=output_dim)
-    criterion = torch.nn.MSELoss(reduction='mean')
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    # split data into training and validation sets (80/20 training validation subset split)
+    total_samples = x_train_tensor.shape[0]
+    split_index = int(total_samples * 0.8)
+    x_train = x_train_tensor[:split_index]
+    y_train = y_train_tensor[:split_index]
+    x_validate = x_train_tensor[split_index:]
+    y_validate = y_train_tensor[split_index:]
+
+    # data setup
+    train_dataset = TensorDataset(x_train, y_train)
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=False)
+    validate_dataset = TensorDataset(x_validate, y_validate)
+    validate_loader = DataLoader(validate_dataset, batch_size=config.batch_size, shuffle=False)
+
+    model = LSTMModel(input_dim=config.input_dim, hidden_dim=config.hidden_dim, layer_dim=config.layer_dim, output_dim=config.output_dim)
+    criterion = torch.nn.MSELoss(reduction=config.MSELoss_criterion)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     best_test_loss = float('inf')
-
-    # number of evaluations to wait for improvement
-    patience = 10
-    # counter to track evaluations without improvement
-    patience_counter = 0
-    min_delta = 0.001 
-    n_iters_eval = 100
-
+ 
     iter = 0
     train_losses = []
     start_time = time.time()
-    for epoch in range(epochs):
+    for epoch in range(config.epochs):
         print('ITER: ', iter)
         for x_batch, y_batch in train_loader:
             # ensure model is in training mode 
@@ -42,22 +48,22 @@ def train_lstm(x_train_tensor, y_train_tensor):
 
             train_losses.append(loss.item())
 
-            if iter % n_iters_eval == 0:
+            if iter % config.n_iters_eval == 0:
                 # set the model to evaluation mode
                 model.eval()  
 
-                test_losses = []
+                validate_losses = []
                 with torch.no_grad():
-                    for x_test, y_test in test_loader:
-                        y_test_pred = model(x_test).squeeze(-1)
-                        test_loss = criterion(y_test_pred, y_test)
-                        test_losses.append(test_loss.item())
+                    for x_validate, y_validate in validate_loader:
+                        y_pred = model(x_validate).squeeze(-1)
+                        test_loss = criterion(y_pred, y_validate)
+                        validate_losses.append(test_loss.item())
                 
-                avg_test_loss = sum(test_losses) / len(test_losses)
+                avg_test_loss = sum(validate_losses) / len(validate_losses)
                 
-                print(f'\tEpoch [{epoch+1}/{epochs}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
+                print(f'\tEpoch [{epoch+1}/{config.epochs}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
 
-                if avg_test_loss < (best_test_loss - min_delta):
+                if avg_test_loss < (best_test_loss - config.min_delta):
                     best_test_loss = avg_test_loss
 
                     # save the best model so far 
@@ -66,14 +72,14 @@ def train_lstm(x_train_tensor, y_train_tensor):
                 else:
                     patience_counter += 1
 
-                if patience_counter >= patience:
+                if patience_counter >= config.patience:
                     print('early stopping triggered')
 
                     # load the best model parameters before stopping
                     model.load_state_dict(torch.load('best_model.pth'))
                     break
 
-        if patience_counter >= patience:
+        if patience_counter >= config.patience:
             break 
 
         print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
@@ -81,5 +87,14 @@ def train_lstm(x_train_tensor, y_train_tensor):
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Training time: {elapsed_time} seconds")
+
+    # plotting 
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_losses, label='Loss')
+    plt.title('Training MSE')
+    plt.xlabel('Iteration')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
 
     return model

@@ -19,15 +19,15 @@ def preprocess_data(raw_file_path):
     scaled_train = scaler.transform(train[numeric_cols])
     scaled_test = scaler.transform(test[numeric_cols])
 
-    X_train, y_train = create_sequences(scaled_train[:, 0].reshape(-1, 1), scaled_train[:, 1], 12)
-    X_test, y_test = create_sequences(scaled_test[:, 0].reshape(-1, 1), scaled_test[:, 1], 12)
+    x_train, y_train = create_sequences(scaled_train[:, 0].reshape(-1, 1), scaled_train[:, 1], 12)
+    x_test, y_test = create_sequences(scaled_test[:, 0].reshape(-1, 1), scaled_test[:, 1], 12)
 
-    X_train_tensor = torch.tensor(X_train).float()
+    x_train_tensor = torch.tensor(x_train).float()
     y_train_tensor = torch.tensor(y_train).float()
-    X_test_tensor = torch.tensor(X_test).float()
+    x_test_tensor = torch.tensor(x_test).float()
     y_test_tensor = torch.tensor(y_test).float()
 
-    return X_train_tensor, y_train_tensor, X_test_tensor, y_test_tensor
+    return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor
 
 def create_sequences(input_data, target_data, seq_len):
     xs, ys = [], []
@@ -35,6 +35,3 @@ def create_sequences(input_data, target_data, seq_len):
         xs.append(input_data[i:(i + seq_len)])
         ys.append(target_data[i + seq_len])
     return np.array(xs), np.array(ys)
-
-# eg. 
-# X_train_tensor, y_train_tensor, X_test_tensor, y_test_tensor = preprocess_data('../raw/MorroBayHeights.csv')
