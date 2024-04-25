@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+import joblib
 import torch
 
 def preprocess_data(raw_file_path):
@@ -19,8 +20,14 @@ def preprocess_data(raw_file_path):
     scaled_train = scaler.transform(train[numeric_cols])
     scaled_test = scaler.transform(test[numeric_cols])
 
+    # save the scaler object and y_test unscaled for later figure use in testing 
+    joblib.dump(scaler, './data_processing/scaler.gz')
+    
     x_train, y_train = create_sequences(scaled_train[:, 0].reshape(-1, 1), scaled_train[:, 1], 12)
     x_test, y_test = create_sequences(scaled_test[:, 0].reshape(-1, 1), scaled_test[:, 1], 12)
+
+    y_test_unscaled = scaler.inverse_transform(np.concatenate((np.zeros_like(y_test.reshape(-1, 1)), y_test.reshape(-1, 1)), axis=1))[:, 1]
+    joblib.dump(y_test_unscaled, './data_processing/y_test_unscaled.gz')
 
     x_train_tensor = torch.tensor(x_train).float()
     y_train_tensor = torch.tensor(y_train).float()

@@ -67,7 +67,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
                     best_test_loss = avg_test_loss
 
                     # save the best model so far 
-                    torch.save(model.state_dict(), 'best_model.pth')
+                    torch.save(model.state_dict(), f"../results/models/{config.model_name}.pth")
                     patience_counter = 0
                 else:
                     patience_counter += 1
@@ -76,7 +76,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
                     print('early stopping triggered')
 
                     # load the best model parameters before stopping
-                    model.load_state_dict(torch.load('best_model.pth'))
+                    model.load_state_dict(torch.load(f"../results/models/{config.model_name}.pth"))
                     break
 
         if patience_counter >= config.patience:
