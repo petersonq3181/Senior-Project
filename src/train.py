@@ -1,9 +1,10 @@
 from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 from utils import LSTMModel
-import config
+from config import config
 import torch
 import time 
+import wandb
 
 def train_lstm(x_train_tensor, y_train_tensor):
 
@@ -17,20 +18,19 @@ def train_lstm(x_train_tensor, y_train_tensor):
 
     # data setup
     train_dataset = TensorDataset(x_train, y_train)
-    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=False)
     validate_dataset = TensorDataset(x_validate, y_validate)
-    validate_loader = DataLoader(validate_dataset, batch_size=config.batch_size, shuffle=False)
+    validate_loader = DataLoader(validate_dataset, batch_size=config["batch_size"], shuffle=False)
 
-    model = LSTMModel(input_dim=config.input_dim, hidden_dim=config.hidden_dim, layer_dim=config.layer_dim, output_dim=config.output_dim)
-    criterion = torch.nn.MSELoss(reduction=config.MSELoss_criterion)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+    model = LSTMModel(input_dim=config["input_dim"], hidden_dim=config["hidden_dim"], layer_dim=config["layer_dim"], output_dim=config["output_dim"])
+    criterion = torch.nn.MSELoss(reduction=config["MSELoss_criterion"])
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 
     best_test_loss = float('inf')
  
     iter = 0
-    train_losses = []
     start_time = time.time()
-    for epoch in range(config.epochs):
+    for epoch in range(config["epochs"]):
         print('ITER: ', iter)
         for x_batch, y_batch in train_loader:
             # ensure model is in training mode 
@@ -46,9 +46,9 @@ def train_lstm(x_train_tensor, y_train_tensor):
             loss.backward()
             optimizer.step()
 
-            train_losses.append(loss.item())
+            wandb.log({"loss": loss.item()}) 
 
-            if iter % config.n_iters_eval == 0:
+            if iter % config["n_iters_eval"] == 0:
                 # set the model to evaluation mode
                 model.eval()  
 
@@ -61,25 +61,26 @@ def train_lstm(x_train_tensor, y_train_tensor):
                 
                 avg_test_loss = sum(validate_losses) / len(validate_losses)
                 
-                print(f'\tEpoch [{epoch+1}/{config.epochs}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
+                print(f'\tEpoch [{epoch+1}/{config["epochs"]}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
 
-                if avg_test_loss < (best_test_loss - config.min_delta):
+                model_str = "../results/models/" + config["model_name"] + ".pth"
+                if avg_test_loss < (best_test_loss - config["min_delta"]):
                     best_test_loss = avg_test_loss
 
                     # save the best model so far 
-                    torch.save(model.state_dict(), f"../results/models/{config.model_name}.pth")
+                    torch.save(model.state_dict(), model_str)
                     patience_counter = 0
                 else:
                     patience_counter += 1
 
-                if patience_counter >= config.patience:
+                if patience_counter >= config["patience"]:
                     print('early stopping triggered')
 
                     # load the best model parameters before stopping
-                    model.load_state_dict(torch.load(f"../results/models/{config.model_name}.pth"))
+                    model.load_state_dict(torch.load(model_str))
                     break
 
-        if patience_counter >= config.patience:
+        if patience_counter >= config["patience"]:
             break 
 
         print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
@@ -87,16 +88,5 @@ def train_lstm(x_train_tensor, y_train_tensor):
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Training time: {elapsed_time} seconds")
-
-    # plotting 
-    plt.figure(figsize=(10, 6))
-    plt.plot(train_losses, label='Loss')
-    plt.title('Training MSE')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.show()
-
-    plt.savefig(f"../results/figures/training_mse_{config.model_name}.png", format='png', dpi=300) 
 
     return model

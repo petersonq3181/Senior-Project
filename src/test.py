@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import joblib
-import config
+from config import config
 import torch
+import wandb
 
 
 def test_lstm(model, x_test_tensor, y_test_tensor):
     model.eval()
 
-    criterion = torch.nn.MSELoss(reduction=config.MSELoss_criterion)
+    criterion = torch.nn.MSELoss(reduction=config["MSELoss_criterion"])
 
     with torch.no_grad():
         test_predictions = model(x_test_tensor)
@@ -36,6 +37,9 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
     plt.xlabel('Time (Hours)')
     plt.ylabel('Wave Height (Meters)')
     plt.legend()
-    plt.show()
 
-    plt.savefig(f"../results/figures/test_{config.model_name}.png", format='png', dpi=300) 
+    fig_str = "../results/figures/test_" + config["model_name"] + ".png"
+    plt.savefig(fig_str, format='png', dpi=200) 
+
+    # log the plot image file to wandb
+    wandb.log({"Predictions vs Actual": wandb.Image(fig_str)})
