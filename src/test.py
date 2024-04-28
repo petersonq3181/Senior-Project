@@ -37,3 +37,5 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
     plt.ylabel('Wave Height (Meters)')
     plt.legend()
     plt.show()
+
+    plt.savefig(f"../results/figures/test_{config.model_name}.png", format='png', dpi=300) 

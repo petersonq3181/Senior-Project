@@ -97,4 +97,6 @@ def train_lstm(x_train_tensor, y_train_tensor):
     plt.legend()
     plt.show()
 
+    plt.savefig(f"../results/figures/training_mse_{config.model_name}.png", format='png', dpi=300) 
+
     return model
