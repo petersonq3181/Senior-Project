@@ -1,5 +1,5 @@
 config = {
-    "model_name": "LSTM_model_0",
+    "model_name": "LSTM_model_1",
     "MSELoss_criterion": "mean",
     "sequence_length": 12,
     "batch_size": 64,

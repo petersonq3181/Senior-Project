@@ -5,16 +5,19 @@ import joblib
 import torch
 
 def preprocess_data(raw_file_path):
-    cols = ['datetime', 'lotusSigh_mt', 'datetime_local', 'lotusMaxBWH_ft']
+    cols = ['datetime', 'lotusSigh_mt', 'datetime_local', 'lotusMaxBWH_ft', 'lotusMinBWH_ft']
     numeric_cols = ['lotusSigh_mt', 'lotusMaxBWH_ft']
     df = pd.read_csv(raw_file_path, usecols=cols, parse_dates=['datetime_local'])
-    df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048  # convert to meters
+    
+    df['lotusAvgBHW_ft'] = df[['lotusMaxBWH_ft', 'lotusMinBWH_ft']].mean(axis=1)
+    df['lotusAvgBHW_ft'] = df['lotusAvgBHW_ft'] * 0.3048 # convert to meters
 
     # split data
     train = df.iloc[:29800]
     test = df.iloc[29800:]
 
     # scaling
+    numeric_cols = ['lotusSigh_mt', 'lotusAvgBHW_ft']
     scaler = MinMaxScaler()
     scaler.fit(train[numeric_cols])
     scaled_train = scaler.transform(train[numeric_cols])
