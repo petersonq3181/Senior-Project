@@ -18,6 +18,7 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
         
         test_loss = criterion(test_predictions, y_test_tensor)
         print(f'Test Loss: {test_loss.item()}')
+        wandb.log({'Test Loss': test_loss.item()})
 
     scaler = joblib.load('./data_processing/scaler.gz') 
     y_test_unscaled = joblib.load('./data_processing/y_test_unscaled.gz')

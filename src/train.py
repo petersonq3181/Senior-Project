@@ -46,7 +46,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
             loss.backward()
             optimizer.step()
 
-            wandb.log({"loss": loss.item()}) 
+            wandb.log({"Training Loss": loss.item()}) 
 
             if iter % config["n_iters_eval"] == 0:
                 # set the model to evaluation mode
@@ -88,5 +88,6 @@ def train_lstm(x_train_tensor, y_train_tensor):
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Training time: {elapsed_time} seconds")
+    wandb.log({"Training Time (s)": elapsed_time}) 
 
     return model
