@@ -27,20 +27,20 @@ def preprocess_data(raw_file_path):
 
     x_train, y_train = prep_time_series(scaled_train)
     x_test, y_test = prep_time_series(scaled_test)
-    _, y_test_unscaled = prep_time_series(test[numeric_cols])
+    _, y_test_unscaled = prep_time_series(test[numeric_cols].to_numpy())
+    joblib.dump(torch.tensor(y_test_unscaled).squeeze(-1).float(), './data_processing/y_test_unscaled.gz')
 
-  
-    '''
-    print(x_train.shape)
-    print(y_train.shape)
-    print(x_test.shape)
-    print(y_test.shape)
-    '''
+    x_train_tensor = torch.tensor(x_train).float()
+    y_train_tensor = torch.tensor(y_train).float()
+    x_test_tensor = torch.tensor(x_test).float()
+    y_test_tensor = torch.tensor(y_test).float()
 
-    # y_test_unscaled = scaler.inverse_transform(y_test)
-    joblib.dump(y_test_unscaled, './data_processing/y_test_unscaled.gz')
+    # add a third dimension on the x data (N, sequence_lag) --> (N, sequence_lag, 1)
+    x_train_tensor = x_train_tensor.unsqueeze(2)
+    x_test_tensor = x_test_tensor.unsqueeze(2)
 
-    return torch.tensor(x_train), torch.tensor(y_train), torch.tensor(x_test), torch.tensor(y_test) 
+
+    return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor
 
 
 def prep_time_series(scaled_data): 

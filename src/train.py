@@ -22,7 +22,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
     validate_dataset = TensorDataset(x_validate, y_validate)
     validate_loader = DataLoader(validate_dataset, batch_size=config["batch_size"], shuffle=False)
 
-    model = LSTMModel(input_dim=config["input_dim"], hidden_dim=config["hidden_dim"], layer_dim=config["layer_dim"], output_dim=config["output_dim"])
+    model = LSTMModel(input_dim=config["input_dim"], hidden_dim=config["hidden_dim"], layer_dim=config["layer_dim"], output_dim=config["sequence_next"])
     criterion = torch.nn.MSELoss(reduction=config["MSELoss_criterion"])
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 
@@ -39,6 +39,8 @@ def train_lstm(x_train_tensor, y_train_tensor):
 
             # forward pass
             y_pred = model(x_batch).squeeze(-1)
+            y_batch = y_batch.squeeze(-1) # squeeze last dim; from (batch_size, sequence_next, 1) --> (batch_size, sequence_next)
+
             loss = criterion(y_pred, y_batch)
             
             # backward pass and optimization
@@ -56,6 +58,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
                 with torch.no_grad():
                     for x_validate, y_validate in validate_loader:
                         y_pred = model(x_validate).squeeze(-1)
+                        y_validate = y_validate.squeeze(-1) # squeeze last dim; from (batch_size, sequence_next, 1) --> (batch_size, sequence_next)
                         test_loss = criterion(y_pred, y_validate)
                         validate_losses.append(test_loss.item())
                 
