@@ -14,25 +14,30 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
     with torch.no_grad():
         test_predictions = model(x_test_tensor)
 
-    # reverse scale the prediction values
-    scaler = joblib.load('./data_processing/scaler.gz') 
-
-
-
-
-
+        test_loss = criterion(test_predictions.squeeze(-1), y_test_tensor.squeeze(-1))
+        print(f'Test Loss: {test_loss.item()}')
+        wandb.log({'Test Loss': test_loss.item()})
+    
+    test_predictions_unscaled = reverse_scale_preds(test_predictions)
     y_test_unscaled = joblib.load('./data_processing/y_test_unscaled.gz')
 
-    agg_test_preds = average_overlapping_series(test_predictions)
+    agg_test_preds = average_overlapping_series(test_predictions_unscaled)
     agg_test_actuals = average_overlapping_series(y_test_unscaled)
 
+    # plot predicted vs. actuals 
+    plt.figure(figsize=(10, 6))
+    plt.plot(agg_test_actuals, label='Actual')
+    plt.plot(agg_test_preds, label='Predicted')
+    plt.title('Test Predictions vs Actual')
+    plt.xlabel('Time (Hours)')
+    plt.ylabel('Wave Height (Meters)')
+    plt.legend()
 
- 
+    fig_str = "../results/figures/test_" + config["model_name"] + ".png"
+    plt.savefig(fig_str, format='png', dpi=200) 
 
-    print(y_test_unscaled.shape)
-    print(type(y_test_unscaled))
-
-
+    # log the plot image file to wandb
+    wandb.log({"Predictions vs Actual": wandb.Image(fig_str)})
 
 def average_overlapping_series(matrix):
     '''
@@ -67,3 +72,30 @@ def average_overlapping_series(matrix):
     averages = [np.mean(values) for values in time_steps]
 
     return averages 
+
+def reverse_scale_preds(test_predictions):
+    scaler = joblib.load('./data_processing/scaler.gz') 
+
+    # turn to numpy array
+    test_predictions_np = test_predictions.numpy()
+    
+    # reshape into 2d arr w/ 1 col
+    # -1 to calc the necessary number of rows to maintain the same total number of elements 
+    test_predictions_np_reshaped = test_predictions_np.reshape(-1, 1)
+
+    # same shape as test_predictions_np_reshaped but filled with zeros
+    dummy_feature = np.zeros_like(test_predictions_np_reshaped)
+
+    # horizontally stack the dummy_feature array and test_predictions_np_reshaped array into a single 2d array   
+    test_predictions_combined = np.hstack((dummy_feature, test_predictions_np_reshaped))
+
+    # once of the shape expected by the scaler, do reverse scaling 
+    test_predictions_unscaled_combined = scaler.inverse_transform(test_predictions_combined)
+
+    # extract column with unscaled values 
+    test_predictions_unscaled = test_predictions_unscaled_combined[:, 1]
+
+    # reshape into the original shape: (n_samples, sequence_next)
+    test_predictions_unscaled = test_predictions_unscaled.reshape(int(test_predictions_unscaled.shape[0] / config["sequence_next"]), config["sequence_next"])
+
+    return test_predictions_unscaled
