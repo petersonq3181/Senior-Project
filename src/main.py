@@ -8,9 +8,9 @@ import wandb
 def main():
 
     # data preprocessing 
-    x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor = preprocess_data("../data/raw/MorroBayHeights.csv")
+    x_train, y_train, x_test, y_test = preprocess_data("../data/raw/MorroBayHeights.csv")
     
-    for i in range(10):
+    for i in range(1):
         # init Weights and Biases run 
         wandb.init(
             project = "Surf Forecast AI",
@@ -19,10 +19,10 @@ def main():
         )
 
         # train 
-        model = train_lstm(x_train_tensor, y_train_tensor)
+        model = train_lstm(x_train, y_train)
 
         # test 
-        test_lstm(model, x_test_tensor, y_test_tensor)
+        test_lstm(model, x_test, y_test)
 
         wandb.finish()
 
