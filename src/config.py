@@ -6,7 +6,7 @@ config = {
     "sequence_next": 12,
     "batch_size": 64,
     "input_dim": 2,
-    "hidden_dim": 4,
+    "hidden_dim": 2,
     "layer_dim": 1,
     "learning_rate": 0.03,
     "epochs": 10,

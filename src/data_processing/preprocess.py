@@ -47,17 +47,13 @@ def preprocess_data(raw_file_path):
 def prep_time_series(scaled_data): 
     '''
     one sample will have 
-    - x shape: (1, seq_lag, d)
-    - y shape: (1, seq_next, d)
-    where d = dimension of data (# cols in data)
+    - x shape: (1, seq_lag, input_dim)
+    - y shape: (1, seq_next, 1)
 
     given N samples, for the entire dataset
-    - x shape: (K, seq_lag, d)
-    - y shape: (K, seq_next, d)
+    - x shape: (K, seq_lag, input_dim)
+    - y shape: (K, seq_next, 1)
     where K = N - (seq_lag + seq_delay + seq_next)
-
-    TODO currently programmed for d=2 (ie. one x and one y feature)
-    will modify later for potentially multivariable x and y
     '''
 
     seq_lag = config["sequence_lag"]
@@ -67,8 +63,8 @@ def prep_time_series(scaled_data):
     N = scaled_data.shape[0]
     K = N - (seq_lag + seq_delay + seq_next)
 
-    x_raw = scaled_data[:, :2]
-    y_raw = scaled_data[:, 2:]
+    x_raw = scaled_data[:, :config['input_dim']]
+    y_raw = scaled_data[:, config['input_dim']:]
 
     x_slice = np.array([range(i, i + seq_lag) for i in range(K)])
     y_slice = np.array([range(i + seq_lag + seq_delay, i + seq_lag + seq_delay + seq_next) for i in range(K)])

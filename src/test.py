@@ -76,13 +76,9 @@ def average_overlapping_series(matrix):
 def reverse_scale_preds(test_predictions):
     scaler = joblib.load('./data_processing/scaler.gz') 
 
-    print('shape of test_predictions:')
-    print(test_predictions.shape)
-    print()
-
     # turn to numpy array
     test_predictions_np = test_predictions.numpy()
-    
+
     # reshape into 2d arr w/ 1 col
     # -1 to calc the necessary number of rows to maintain the same total number of elements 
     test_predictions_np_reshaped = test_predictions_np.reshape(-1, 1)
@@ -92,12 +88,14 @@ def reverse_scale_preds(test_predictions):
 
     # horizontally stack the dummy_feature array and test_predictions_np_reshaped array into a single 2d array   
     test_predictions_combined = np.hstack((dummy_feature, test_predictions_np_reshaped))
+    for _ in range(config['input_dim'] - 1):
+        test_predictions_combined = np.hstack((dummy_feature, test_predictions_combined))
 
     # once of the shape expected by the scaler, do reverse scaling 
     test_predictions_unscaled_combined = scaler.inverse_transform(test_predictions_combined)
 
     # extract column with unscaled values 
-    test_predictions_unscaled = test_predictions_unscaled_combined[:, 1]
+    test_predictions_unscaled = test_predictions_unscaled_combined[:, config['input_dim']]
 
     # reshape into the original shape: (n_samples, sequence_next)
     test_predictions_unscaled = test_predictions_unscaled.reshape(int(test_predictions_unscaled.shape[0] / config["sequence_next"]), config["sequence_next"])
