@@ -1,9 +1,9 @@
 config = {
-    "model_name": "scratch_model",
+    "model_name": "LSTM_model1",
     "MSELoss_criterion": "mean",
-    "sequence_lag": 20,
-    "sequence_delay": 3,
-    "sequence_next": 10,
+    "sequence_lag": 24,
+    "sequence_delay": 1,
+    "sequence_next": 12,
     "batch_size": 64,
     "input_dim": 1,
     "hidden_dim": 4,
