@@ -1,5 +1,5 @@
 config = {
-    "model_name": "LSTM_model1",
+    "model_name": "LSTM_model1", 
     "MSELoss_criterion": "mean",
     "sequence_lag": 24,
     "sequence_delay": 1,
