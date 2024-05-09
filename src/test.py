@@ -76,6 +76,10 @@ def average_overlapping_series(matrix):
 def reverse_scale_preds(test_predictions):
     scaler = joblib.load('./data_processing/scaler.gz') 
 
+    print('shape of test_predictions:')
+    print(test_predictions.shape)
+    print()
+
     # turn to numpy array
     test_predictions_np = test_predictions.numpy()
     

@@ -7,6 +7,12 @@ import time
 import wandb
 
 def train_lstm(x_train_tensor, y_train_tensor):
+    
+    print('shape of x_train_tensor:')
+    print(x_train_tensor.shape)
+    print('shape of y_train_tensor:')
+    print(x_train_tensor.shape)
+    print()
 
     # split data into training and validation sets (80/20 training validation subset split)
     total_samples = x_train_tensor.shape[0]
