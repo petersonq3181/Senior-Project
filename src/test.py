@@ -19,7 +19,7 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
 
         test_loss = criterion(test_predictions.squeeze(-1), y_test_tensor.squeeze(-1))
         print(f'Test Loss: {test_loss.item()}')
-        wandb.log({'Test Loss': test_loss.item()})
+        wandb.log({"loss": test_loss.item()}) 
     
     test_predictions_unscaled = reverse_scale_preds(test_predictions)
     y_test_unscaled = joblib.load('./data_processing/y_test_unscaled.gz')

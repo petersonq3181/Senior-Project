@@ -59,8 +59,6 @@ def prep_time_series(scaled_data):
     seq_delay = config["sequence_delay"]
     seq_next = config["sequence_next"]
 
-    print('yooo seq_lag: ', seq_lag)
-
     N = scaled_data.shape[0]
     K = N - (seq_lag + seq_delay + seq_next)
 

@@ -29,7 +29,7 @@ sweep_config = {
             "values": [32, 64, 128]
         },
         "learning_rate": {
-            "values": [0.01, 0.03, 0.05]
+            "values": [0.001, 0.01, 0.05, 0.1]
         }
     }
 }
