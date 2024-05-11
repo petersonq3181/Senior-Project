@@ -8,10 +8,15 @@ import torch
 
 def preprocess_data(raw_file_path):
     cols = ['datetime', 'lotusSigh_mt', 'datetime_local', 'lotusMaxBWH_ft', 'lotusMinBWH_ft', 'tide_ft']
-    numeric_cols = ['lotusSigh_mt', 'lotusMaxBWH_ft']
+    numeric_cols = ['lotusSigh_mt', 'lotusMinBWH_ft', 'lotusMaxBWH_ft']
     df = pd.read_csv(raw_file_path, usecols=cols, parse_dates=['datetime_local'])
     
-    df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048 # convert to meters
+    # df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048 # convert to meters
+
+    df['lotusAvgBHW_ft'] = df[['lotusMaxBWH_ft', 'lotusMinBWH_ft']].mean(axis=1)
+    df['lotusAvgBHW_ft'] = df['lotusAvgBHW_ft'] * 0.3048 # convert to meters
+
+    numeric_cols = ['lotusSigh_mt', 'lotusAvgBHW_ft']
 
     # split data
     train = df.iloc[:29800]
