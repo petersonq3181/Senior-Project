@@ -1,11 +1,11 @@
 config = {
-    "model_name": "LSTM_model2", 
+    "model_name": "LSTM_model0_sweeps0", 
     "MSELoss_criterion": "mean",
     "sequence_lag": 24,
     "sequence_delay": 1,
     "sequence_next": 12,
     "batch_size": 64,
-    "input_dim": 2,
+    "input_dim": 1,
     "hidden_dim": 2,
     "layer_dim": 1,
     "learning_rate": 0.03,
@@ -14,3 +14,23 @@ config = {
     "min_delta": 0.001,
     "n_iters_eval": 100
 }
+
+sweep_config = {
+    "method": "grid",
+    "metric": {
+        "name": "loss",
+        "goal": "minimize"   
+    },
+    "parameters": {
+        "sequence_lag": {
+            "values": [12, 24, 48]
+        },
+        "batch_size": {
+            "values": [32, 64, 128]
+        },
+        "learning_rate": {
+            "values": [0.01, 0.03, 0.05]
+        }
+    }
+}
+

@@ -1,4 +1,7 @@
+import matplotlib
+matplotlib.use('Agg')  # use 'Agg' backend, which is non-interactive and does not require a GUI
 import matplotlib.pyplot as plt
+
 import numpy as np
 import joblib
 from config import config

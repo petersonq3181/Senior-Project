@@ -1,5 +1,4 @@
 from torch.utils.data import TensorDataset, DataLoader
-import matplotlib.pyplot as plt
 from utils import LSTMModel
 from config import config
 import torch
@@ -32,7 +31,8 @@ def train_lstm(x_train_tensor, y_train_tensor):
     criterion = torch.nn.MSELoss(reduction=config["MSELoss_criterion"])
     optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
 
-    best_test_loss = float('inf')
+    best_valid_loss = float('inf')
+    best_loss = float('inf')
  
     iter = 0
     start_time = time.time()
@@ -54,7 +54,7 @@ def train_lstm(x_train_tensor, y_train_tensor):
             loss.backward()
             optimizer.step()
 
-            wandb.log({"Training Loss": loss.item()}) 
+            wandb.log({"loss": loss.item()}) 
 
             if iter % config["n_iters_eval"] == 0:
                 # set the model to evaluation mode
@@ -73,8 +73,8 @@ def train_lstm(x_train_tensor, y_train_tensor):
                 print(f'\tEpoch [{epoch+1}/{config["epochs"]}], Step [{iter}], Train Loss: {loss.item():.6f}, Test Loss: {avg_test_loss:.6f}')
 
                 model_str = "../results/models/" + config["model_name"] + ".pth"
-                if avg_test_loss < (best_test_loss - config["min_delta"]):
-                    best_test_loss = avg_test_loss
+                if avg_test_loss < (best_valid_loss - config["min_delta"]):
+                    best_valid_loss = avg_test_loss
 
                     # save the best model so far 
                     torch.save(model.state_dict(), model_str)
@@ -92,7 +92,14 @@ def train_lstm(x_train_tensor, y_train_tensor):
         if patience_counter >= config["patience"]:
             break 
 
+        if loss.item() < best_loss:
+            best_loss = loss.item()
+            wandb.log({"best_loss": best_loss})
+
         print(f'Epoch {epoch+1},\t Loss: {loss.item()}')
+
+    # at the end of training, log the final or best loss as a summary
+    wandb.run.summary["loss"] = best_loss
 
     end_time = time.time()
     elapsed_time = end_time - start_time
