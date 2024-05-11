@@ -7,35 +7,38 @@ import time
 
 start_time = time.time()
 
-# init a sweep
-sweep_id = wandb.sweep(sweep_config, project="Surf Forecast AI")
+# # init a sweep
+# sweep_id = wandb.sweep(sweep_config, project="Surf Forecast AI")
 
 def main():
     
-    # init Weights and Biases run 
-    wandb.init(
-        project = "Surf Forecast AI",
-        name = config["model_name"] + "_run",
-        config = config
-    )
-
-    config.update({
-        "sequence_lag": wandb.config.sequence_lag,
-        "batch_size": wandb.config.batch_size,
-        "learning_rate": wandb.config.learning_rate
-    })
 
     # data preprocessing 
     x_train, y_train, x_test, y_test = preprocess_data("../data/raw/MorroBayHeights.csv")
 
-    # train 
-    model = train_lstm(x_train, y_train)
+    for i in range(10):
+        # init Weights and Biases run 
+        wandb.init(
+            project = "Surf Forecast AI",
+            name = config["model_name"] + "_run_" + str(i),
+            config = config
+        )
 
-    # test 
-    test_lstm(model, x_test, y_test)
+        # config.update({
+        #     "sequence_lag": wandb.config.sequence_lag,
+        #     "batch_size": wandb.config.batch_size,
+        #     "learning_rate": wandb.config.learning_rate
+        # })
 
-    wandb.finish()
+        # train 
+        model = train_lstm(x_train, y_train)
+
+        # test 
+        test_lstm(model, x_test, y_test)
+
+        wandb.finish()
 
 if __name__ == "__main__":
-    wandb.agent(sweep_id, main)
+    # wandb.agent(sweep_id, main)
+    main()
     print(f"Time to execute: {time.time() - start_time} seconds")
