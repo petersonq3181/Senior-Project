@@ -23,7 +23,7 @@ sweep_config = {
     },
     "parameters": {
         "sequence_lag": {
-            "values": [12, 24, 48]
+            "values": [12, 48]
         },
         "batch_size": {
             "values": [32, 64, 128]
