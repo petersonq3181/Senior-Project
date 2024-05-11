@@ -54,6 +54,8 @@ def train_lstm(x_train_tensor, y_train_tensor):
             loss.backward()
             optimizer.step()
 
+            wandb.log({"Training Loss": loss.item()})
+
             if iter % config["n_iters_eval"] == 0:
                 # set the model to evaluation mode
                 model.eval()  

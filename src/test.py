@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import joblib
-from config import config
+from config import config, sweep_config
 import torch
 import wandb
 
@@ -28,10 +28,15 @@ def test_lstm(model, x_test_tensor, y_test_tensor):
     agg_test_actuals = average_overlapping_series(y_test_unscaled)
 
     # plot predicted vs. actuals 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 7))
+    plt.subplots_adjust(top=0.85) # adjust to make room for title
     plt.plot(agg_test_actuals, label='Actual')
     plt.plot(agg_test_preds, label='Predicted')
-    plt.title('Test Predictions vs Actual')
+    ptitle = ""
+    for par in sweep_config["parameters"]:
+        ptitle += f"{par}: {config[par]}\n"
+    ptitle += "Test Predictions vs Actual"
+    plt.title(ptitle)
     plt.xlabel('Time (Hours)')
     plt.ylabel('Wave Height (Meters)')
     plt.legend()
