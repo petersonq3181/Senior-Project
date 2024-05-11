@@ -1,5 +1,5 @@
 config = {
-    "model_name": "LSTM_model2_sweeps0", 
+    "model_name": "LSTM_model_2", 
     "MSELoss_criterion": "mean",
     "sequence_lag": 48,
     "sequence_delay": 1,
@@ -8,7 +8,7 @@ config = {
     "input_dim": 2,
     "hidden_dim": 2,
     "layer_dim": 1,
-    "learning_rate": 0.01,
+    "learning_rate": 0.05,
     "epochs": 10,
     "patience": 10,
     "min_delta": 0.001,
