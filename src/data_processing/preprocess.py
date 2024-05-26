@@ -7,12 +7,11 @@ import torch
 
 
 def preprocess_data(raw_file_path):
-    cols = ['datetime', 'lotusSigh_mt', 'datetime_local', 'lotusMaxBWH_ft', 'lotusMinBWH_ft', 'tide_ft']
-    numeric_cols = ['lotusSigh_mt', 'tide_ft', 'lotusMaxBWH_ft']
+    cols = ['datetime', 'datetime_local', 'lotusSighPart0_mt', 'lotusSighPart1_mt', 'lotusSighPart2_mt', 'lotusSighPart3_mt', 'lotusSighPart4_mt', 'lotusSighPart5_mt', 'lotusMaxBWH_ft']
+    numeric_cols = cols[2:]
     df = pd.read_csv(raw_file_path, usecols=cols, parse_dates=['datetime_local'])
     
     df['lotusMaxBWH_ft'] = df['lotusMaxBWH_ft'] * 0.3048 # convert to meters
-    df['tide_ft'] = df['tide_ft'] * 0.3048 # convert to meters
     
     # split data
     train = df.iloc[:29800]
