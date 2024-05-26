@@ -1,5 +1,5 @@
 config = {
-    "model_name": "LSTM_model3", 
+    "model_name": "LSTM_model3_sweeps0", 
     "MSELoss_criterion": "mean",
     "sequence_lag": 48,
     "sequence_delay": 1,
