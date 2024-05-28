@@ -5,7 +5,7 @@ from config import config, sweep_config
 import wandb
 import time
 
-sweep = True 
+sweep = False 
 
 start_time = time.time()
 
@@ -44,7 +44,7 @@ def main():
         # data preprocessing 
         x_train, y_train, x_test, y_test = preprocess_data("../data/raw/MorroBayHeights.csv")
 
-        for i in range(1):
+        for i in range(10):
             # init Weights and Biases run 
             wandb.init(
                 project = "Surf Forecast AI",
