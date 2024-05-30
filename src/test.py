@@ -1,7 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')  # use 'Agg' backend, which is non-interactive and does not require a GUI
 import matplotlib.pyplot as plt
-
 import numpy as np
 import joblib
 from config import config, sweep_config
@@ -61,7 +60,7 @@ def average_overlapping_series(matrix):
     t3 t4 t5 t6
     t4 t5 t6 t7
 
-    ex. output [t0_avg, t1_avg, ..., t8_avg]
+    ex. output [t0_avg, t1_avg, ..., t7_avg]
 
     '''
 

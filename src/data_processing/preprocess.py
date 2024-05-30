@@ -38,7 +38,6 @@ def preprocess_data(raw_file_path):
         x_train_tensor = x_train_tensor.unsqueeze(2)
         x_test_tensor = x_test_tensor.unsqueeze(2)
 
-
     return x_train_tensor, y_train_tensor, x_test_tensor, y_test_tensor
 
 

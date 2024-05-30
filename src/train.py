@@ -1,5 +1,5 @@
 from torch.utils.data import TensorDataset, DataLoader
-from utils import LSTMModel
+from model import LSTMModel
 from config import config
 import torch
 import time 
@@ -88,9 +88,6 @@ def train_lstm(x_train_tensor, y_train_tensor):
                     # load the best model parameters before stopping
                     model.load_state_dict(torch.load(model_str))
                     break
-
-        if patience_counter >= config["patience"]:
-            break 
 
         if loss.item() < best_loss:
             best_loss = loss.item()
