@@ -1,10 +1,10 @@
 config = {
-    "model_name": "LSTM_model5_sweep0", 
+    "model_name": "LSTM_model_5", 
     "MSELoss_criterion": "mean",
     "sequence_lag": 48,
     "sequence_delay": 1,
     "sequence_next": 12,
-    "batch_size": 64,
+    "batch_size": 128,
     "input_dim": 5,
     "hidden_dim": 2,
     "layer_dim": 1,
