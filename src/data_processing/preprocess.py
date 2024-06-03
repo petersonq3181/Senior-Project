@@ -7,7 +7,14 @@ import torch
 
 
 def preprocess_data(raw_file_path):
-    cols = ['datetime', 'datetime_local', 'lotusSigh_mt' ,'lotusSighPart0_mt', 'lotusTPPart0_sec', 'lotusPDirPart0_deg', 'lotusSpreadPart0_deg', 'lotusMaxBWH_ft']
+    cols = ['datetime', 'datetime_local', 'lotusSigh_mt',
+            'lotusSighPart0_mt', 'lotusTPPart0_sec', 'lotusPDirPart0_deg', 'lotusSpreadPart0_deg', 
+            'lotusSighPart1_mt', 'lotusTPPart1_sec', 'lotusPDirPart1_deg', 'lotusSpreadPart1_deg',
+            'lotusSighPart2_mt', 'lotusTPPart2_sec', 'lotusPDirPart2_deg', 'lotusSpreadPart2_deg',
+            'lotusSighPart3_mt', 'lotusTPPart3_sec', 'lotusPDirPart3_deg', 'lotusSpreadPart3_deg',
+            'lotusSighPart4_mt', 'lotusTPPart4_sec', 'lotusPDirPart4_deg', 'lotusSpreadPart4_deg',
+            'lotusSighPart5_mt', 'lotusTPPart5_sec', 'lotusPDirPart5_deg', 'lotusSpreadPart5_deg',
+            'lotusMaxBWH_ft']
     numeric_cols = cols[2:]
     df = pd.read_csv(raw_file_path, usecols=cols, parse_dates=['datetime_local'])
     
