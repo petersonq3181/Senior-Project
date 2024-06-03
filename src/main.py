@@ -5,7 +5,7 @@ from config import config, sweep_config
 import wandb
 import time
 
-sweep = False 
+sweep = True 
 
 start_time = time.time()
 
@@ -30,7 +30,7 @@ def main():
         })
 
         # data preprocessing 
-        x_train, y_train, x_test, y_test = preprocess_data("../data/raw/MorroBayHeights.csv")
+        x_train, y_train, x_test, y_test = preprocess_data("../data/MorroBayHeights.csv")
 
         # train 
         model = train_lstm(x_train, y_train)
@@ -42,7 +42,7 @@ def main():
 
     else: 
         # data preprocessing 
-        x_train, y_train, x_test, y_test = preprocess_data("../data/raw/MorroBayHeights.csv")
+        x_train, y_train, x_test, y_test = preprocess_data("../data/MorroBayHeights.csv")
 
         for i in range(1):
             # init Weights and Biases run 
