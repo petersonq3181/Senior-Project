@@ -5,7 +5,7 @@ from config import config, sweep_config
 import wandb
 import time
 
-sweep = True 
+sweep = False 
 
 start_time = time.time()
 
